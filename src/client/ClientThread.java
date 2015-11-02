@@ -1,0 +1,35 @@
+package client;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.Socket;
+
+public class ClientThread extends Thread{
+	Socket threadSocket;
+	String answer;
+	
+	public ClientThread(Socket client){
+		this.threadSocket = client;
+
+	}
+	
+	public void run() {
+		// Création du flux en entrée
+		BufferedReader inFromServer;
+		try {
+			inFromServer = new BufferedReader(
+					new InputStreamReader(
+							threadSocket.getInputStream()));
+			
+			// Lecture des données arrivant du serveur
+			answer = inFromServer.readLine();
+			System.out.println("FROM SERVER: " + answer);
+			
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+}
