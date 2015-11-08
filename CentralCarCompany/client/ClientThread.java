@@ -23,9 +23,10 @@ public class ClientThread extends Thread{
 							threadSocket.getInputStream()));
 			
 			// Lecture des données arrivant du serveur
+			while (true){
 			answer = inFromServer.readLine();
-			System.out.println("FROM SERVER: " + answer);
-			
+			System.out.println("" + answer);
+			}
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

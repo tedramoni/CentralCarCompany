@@ -64,10 +64,7 @@ public class Serveur {
 
 	}
 	
-	public String afficher_flotte(){
-		return null;
-		//TODO
-	}
+
 	
 	public static String reserver(String immatriculation){
 		return immatriculation;
@@ -79,20 +76,14 @@ public class Serveur {
 		return immatriculation;
 	}
 	
-	public static String miseADispo(String immatriculation){
-		return immatriculation;
-		//TODO
-	}
+
 	
 	public static String depart(String immatriculation){
 		return immatriculation;
 		//TODO
 	}
 	
-	public static String retour(String immatriculation){
-		return immatriculation;
-		//TODO
-	}
+	
 	
 	public static String quitter(String immatriculation){
 		return immatriculation;
@@ -104,11 +95,7 @@ public class Serveur {
 		
 	}
 	
-	//afficher tous les véhicules avec les etats
-	public static String etat_flotte(String substring) {
-		return substring;
-		
-	}
+
 	
 	
 }

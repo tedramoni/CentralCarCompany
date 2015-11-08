@@ -13,13 +13,13 @@ public class Vehicule {
 	Random r = new Random();
 	int coef_vehicule = r.nextInt(1000 - 10 + 1) + 10;
 	static int compteur=0;
-	
+
 	public Vehicule(String marque, String modele, int annee, String immatriculation){
 		this.marque=marque;
 		this.modele=modele;
 		this.annee=annee;
 		this.immatriculation=immatriculation;
-		
+
 		dispo_reservation=true;
 		dispo_en_recuperation=false;
 		preparation=false;
@@ -48,4 +48,18 @@ public class Vehicule {
 	public void setPreparation(boolean preparation) {
 		this.preparation = preparation;
 	}
+
+
+	public String toStringClient() {
+		return "Marque= " + marque + ", Modele= " + modele + ", Annee= "
+				+ annee + ", Immatriculation= " + immatriculation
+				;}
+	public String toStringServeur() {
+		return "Marque= " + marque + ", Modele= " + modele + ", Annee= "
+				+ annee + ", Immatriculation= " + immatriculation
+				+ ", dispo_reservation= " + dispo_reservation
+				+ ", dispo_en_recuperation= " + dispo_en_recuperation
+				+ ", preparation= " + preparation ;
+	}
+
 }
