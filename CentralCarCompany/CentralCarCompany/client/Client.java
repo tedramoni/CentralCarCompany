@@ -24,16 +24,13 @@ public class Client {
 
 		new ClientThread(clientSocket).start();
 		request = "";
-		while(!request.equals("stop")){
+		while(true){
 
 			request = inFromUser.readLine();
-
-
 
 			// Emission des donnees au serveur
 
 			outToServer.println(request);
 		}
-		clientSocket.close();
 	}
 }

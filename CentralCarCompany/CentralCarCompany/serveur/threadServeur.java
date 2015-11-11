@@ -81,16 +81,16 @@ public class threadServeur extends NamedThread  {
 							new OutputStreamWriter(
 									connectionSocket.getOutputStream())),true);
 			afficher_flotte();
+			outToClient.println("\nPour réserver un véhicule vous devez entrer le code de transaction tel que présenté ci-dessous :\n RSV/XXX-00");
 			request ="";
-			while (!request.equals("STOP")){
+			while (((request = inFromClient.readLine()) != null)){
 
 				// Lecture des donnees arrivant du client
-				request = inFromClient.readLine();
 				request = request.toUpperCase();
 				// Emission des donnees au client
 
 
-				if (!request.equals("STOP")){
+				if (request.length()>=3){
 					switch(request.substring(0,3)){
 					// on appelle la fonction avec l'immatriculation du véhicule dans le code de transaction (exemple: BT-45)
 					case "RSV" :
@@ -107,7 +107,7 @@ public class threadServeur extends NamedThread  {
 					}
 				}
 				else {
-					outToClient.println("Vous avez demandé l'arret du service!");
+					outToClient.println("ERREUR DANS LA REQUETE ! \n Veuillez réessayer!");
 				}
 
 
@@ -142,9 +142,10 @@ public class threadServeur extends NamedThread  {
 					++clientEnAttente;
 					attend = true;
 					String msg = "Veuillez patientier";
-					while(v.isDispo_reservation() == false){
+					outToClient.println(msg); 
+					while(v.isDispo_reservation() == false && attend==true){
 						try {
-							this.sleep(4000);
+							this.sleep(30000);
 							msg = msg.concat(".");
 							outToClient.println(msg); 
 							//outToClient.println("Veuillez patientier...");
@@ -190,6 +191,18 @@ public class threadServeur extends NamedThread  {
 
 	}
 	
+	public void afficher_aide(){
+		System.out.println("DPT/XXX-00 : Signaler le départ du véhicule XXX-00\n"
+						 + "RET/XXX-00 : Signaler le retour du véhicule XXX-00\n"
+						 + "MAD/XXX-00 : Signaler la mise à disposition du véhicule XXX-00\n"
+						 + "ETF : Afficher l'état de la flotte\n"
+						 + "VEP : Afficher les véhicules en préparation\n"
+						 + "VED : Afficher les véhicules mis à disposition\n"
+						 + "VES : Afficher les véhicules sortis\n"
+						 + "ACA : Afficher le nombre de client en attente\n"
+						 );
+	}
+	
 	public void afficher_NbrClientEnAttente(){
 		System.out.println("Le nombre de clients en attente pour le véhicule est de : " + clientEnAttente);
 	}
@@ -211,6 +224,16 @@ public class threadServeur extends NamedThread  {
 	public void retour(String immatriculation){
 		Flotte_vehicules.get(immatriculation).setDispo_reservation(true);
 		outToClient.println("Le retour du véhicule "+immatriculation + " à bien été enregistré. \n Nous espérons que l'expérience vous a plu");
+		outToClient.println("CONNEXION FERMÉE");
+		try {
+			inFromClient.close();
+			outToClient.close();
+			connectionSocket.close();
+			this.finalize();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	public void depart(String immatriculation){
@@ -229,7 +252,7 @@ public class threadServeur extends NamedThread  {
 		} catch (InterruptedException e) {
 			Flotte_vehicules.get(immatriculation).setDispo_reservation(true);
 			Flotte_vehicules.get(immatriculation).setPreparation(false);
-			outToClient.println("Suite a un problème indépendant de notre volonté, votre réservation n'a pas aboutie. \n Veuillez reessayer ultérieurement.");
+			outToClient.println("Suite a un problème indépendant de notre volonté, votre réservation n'a pas abouti. \n Veuillez reessayer ultérieurement.");
 
 			e.printStackTrace();
 		}
@@ -266,5 +289,7 @@ public class threadServeur extends NamedThread  {
 		}
 
 	}
+	
+	
 
 }

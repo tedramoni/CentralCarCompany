@@ -23,14 +23,16 @@ public class ClientThread extends Thread{
 							threadSocket.getInputStream()));
 			
 			// Lecture des données arrivant du serveur
-			while (true){
-			answer = inFromServer.readLine();
+			answer="";
+			while (!answer.equals("CONNEXION CLOSED") && (answer = inFromServer.readLine()) != null){
 			System.out.println("" + answer);
 			}
+			threadSocket.close();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		
 	}
 }

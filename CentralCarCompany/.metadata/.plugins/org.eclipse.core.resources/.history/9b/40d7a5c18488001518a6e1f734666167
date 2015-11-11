@@ -1,0 +1,286 @@
+package serveur;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+
+import javax.management.ImmutableDescriptor;
+
+public class threadServeur extends NamedThread  {
+	Socket connectionSocket;
+	String request;
+	static int clientEnAttente = 0;
+	boolean attend = false;
+
+
+	@SuppressWarnings("serial")
+	final static ConcurrentHashMap<String, Vehicule> Flotte_vehicules = new ConcurrentHashMap<String, Vehicule>() {
+		{put("TSL-40",new Vehicule("Tesla", "X", 2014,"TSL-40")); 
+		put("CIT-28",new Vehicule("Citroën", "C3", 2003,"CIT-28")); 
+		put("PGT-39",new Vehicule("Peugeot", "308GTi", 2008,"PGT-39")); 
+		put("MCD-88",new Vehicule("Mercedes", "Citan", 2009,"MCD-88")); 
+		put("MIN-27",new Vehicule("Mini", "Cooper", 2010,"MIN-27")); 
+		put("MCD-40",new Vehicule("Mercedes", "Citan", 2010,"MCD-40")); 
+		put("TSL-90",new Vehicule("Tesla", "S", 2012,"TSL-90")); 
+		put("PGT-10",new Vehicule("Peugeot", "208", 2003,"PGT-10")); 
+		put("RNT-25",new Vehicule("Renault", "Megane", 1999,"RNT-25")); 
+		put("MCD-48",new Vehicule("Mercedes", "Vito", 2004,"MCD-48")); 
+		put("RNT-12",new Vehicule("Renault", "Clio", 2005,"RNT-12")); 
+		put("PGT-49",new Vehicule("Peugeot", "RCZ", 2006,"PGT-49")); 
+		put("TYT-67",new Vehicule("Toyota", "Prius", 2007,"TYT-67")); 
+		put("MCD-77",new Vehicule("Mercedes", "SI", 2008,"MCD-77")); 
+		put("RNT-48",new Vehicule("Renault", "Megane", 1999,"RNT-48")); 
+		put("PGT-97",new Vehicule("Peugeot", "ION", 2005,"PGT-97")); 
+		put("FRR-01",new Vehicule("Ferrari", "S415", 2009,"FRR-01")); 
+		put("PCH-88",new Vehicule("Porsche", "Panamera", 2000,"PCH-88")); 
+		put("MCD-99",new Vehicule("Mercedes", "Cla", 2001,"MCD-99")); 
+		put("CIT-24",new Vehicule("Citroën", "DS", 2002,"CIT-24")); 
+		put("CIT-64",new Vehicule("Citroën", "C4", 2003,"CIT-64")); 
+		put("ASM-75",new Vehicule("Aston Martin", "Vanquish", 2011,"ASM-75"));  
+		}
+	};
+
+	@SuppressWarnings("serial")
+	LinkedBlockingQueue<Employe> liste_employe = new LinkedBlockingQueue<Employe>(){
+		{add(new Employe()); 
+		add(new Employe()); 
+		add(new Employe()); 
+		add(new Employe()); 
+		add(new Employe()); 
+		}
+	};
+	BufferedReader inFromClient;
+	PrintWriter outToClient;
+
+	public threadServeur(Socket s){
+		connectionSocket = s;
+	}
+
+	public threadServeur(){
+	}	
+
+	@Override
+	public void run() {
+
+		// Creation du flux en entree attache a la socket
+
+		try {
+			inFromClient = new BufferedReader(
+					new InputStreamReader(
+							connectionSocket.getInputStream()));
+			// Creation du flux en sortie attache a la socket
+			outToClient = new PrintWriter(
+					new BufferedWriter(
+							new OutputStreamWriter(
+									connectionSocket.getOutputStream())),true);
+			afficher_flotte();
+			outToClient.print("\nPour réserrver un véhicule vous devez entre le code de transaction tel que présenté ci dessous :\n RSV/XXX-00");
+			request ="";
+			while (!request.equals("STOP")){
+
+				// Lecture des donnees arrivant du client
+				request = inFromClient.readLine();
+				request = request.toUpperCase();
+				// Emission des donnees au client
+
+
+				if (!request.equals("STOP")){
+					switch(request.substring(0,3)){
+					// on appelle la fonction avec l'immatriculation du véhicule dans le code de transaction (exemple: BT-45)
+					case "RSV" :
+						reserver(request.substring(4));
+						break;
+					case "QIT" :
+						quitter();
+						break;
+					default:
+						if (!request.equals("o")|| !request.equals("n") ){
+							outToClient.println("ERREUR DANS LA REQUETE ! \n Veuillez réessayer!");
+						}
+						break;
+					}
+				}
+				else {
+					outToClient.println("Vous avez demandé l'arret du service!");
+				}
+
+
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+		try {
+			connectionSocket.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private void quitter() {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void reserver(String substring) {
+		Vehicule v = Flotte_vehicules.get(substring);
+		if(v.isDispo_reservation() == false){
+			outToClient.println("Le véhicule "+substring+ "n'est actuellement pas disponible à la réservation pour le moment. \n Voulez vous patienter ? \n o/n ");
+
+			try {
+				switch(inFromClient.readLine().toUpperCase()){
+				case "O" :
+					++clientEnAttente;
+					attend = true;
+					String msg = "Veuillez patientier";
+					outToClient.println(msg); 
+					while(v.isDispo_reservation() == false && attend==true){
+						try {
+							this.sleep(30000);
+							msg = msg.concat(".");
+							outToClient.println(msg); 
+							//outToClient.println("Veuillez patientier...");
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					break;
+				case "N" :
+					afficher_flotte();
+					break;
+				default:
+					outToClient.println("ERREUR DANS LA REPONSE ! \n Veuillez réessayer!");
+					break;
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+		if(attend == true){
+			attend = false;
+			--clientEnAttente;
+			outToClient.println("Le véhicule est revenu. \n Nous allons pouvoir procéder à la réservation");
+		}
+		
+		
+		v.setDispo_reservation(false);
+		outToClient.println("Votre véhicule est reservé, la préparation va être lancée.");
+		this.setName(substring);
+		this.register();
+		this.preparer(substring);
+	}
+
+	public void afficher_flotte(){
+		outToClient.println("BIENVENUE SUR NOTRE SITE DE RESERVATION DE VOITURES \n VOICI NOTRE FLOTTE \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+
+			outToClient.println(v.getValue().toStringClient());
+		}
+
+	}
+	
+	public void afficher_aide(){
+		System.out.println("DPT/XXX-00 : Signaler le départ du véhicule XXX-00\n"
+						 + "RET/XXX-00 : Signaler le retour du véhicule XXX-00\n"
+						 + "ETF : Afficher l'état de la flotte\n"
+						 + "VEP : Afficher les véhicules en préparation\n"
+						 + "VED : Afficher les véhicules mis à disposition\n"
+						 + "VES : Afficher les véhicules sortis\n"
+						 + "ACA : Afficher le nombre de client en attente\n"
+						 + "MAD/XXX-00 : Signaler la mise à disposition du véhicule XXX-00\n");
+	}
+	
+	public void afficher_NbrClientEnAttente(){
+		System.out.println("Le nombre de clients en attente pour le véhicule est de : " + clientEnAttente);
+	}
+
+	public void etat_flotte() {
+		System.out.println("ETAT FLOTTE \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+
+			System.out.println(v.getValue().toStringServeur());
+		}
+
+	}
+	public void miseADispo(String immatriculation){
+		Flotte_vehicules.get(immatriculation).setDispo_en_recuperation(true);
+		Flotte_vehicules.get(immatriculation).setPreparation(false);
+		outToClient.println("Le vehicule : " + immatriculation + " est à votre disposition dans notre garage \n Vous pouvez venir le récuperer");
+	}
+
+	public void retour(String immatriculation){
+		Flotte_vehicules.get(immatriculation).setDispo_reservation(true);
+		outToClient.println("Le retour du véhicule "+immatriculation + " à bien été enregistré. \n Nous espérons que l'expérience vous a plu");
+	}
+
+	public void depart(String immatriculation){
+		Flotte_vehicules.get(immatriculation).setDispo_en_recuperation(false);
+	}
+
+	public synchronized void preparer(String immatriculation){
+		Flotte_vehicules.get(immatriculation).setPreparation(true);
+		Employe emp;
+		try {
+			//outToClient.println("Votre véhicule ("+immatriculation+") est en préparation.");
+			emp = liste_employe.take();
+			//this.wait((long)(emp.getCoef()* Flotte_vehicules.get(immatriculation).getCoef_vehicule()));
+			liste_employe.add(emp);
+			//this.miseADispo(immatriculation);
+			System.out.println(this.getName()+ " à fini");
+		} catch (InterruptedException e) {
+			Flotte_vehicules.get(immatriculation).setDispo_reservation(true);
+			Flotte_vehicules.get(immatriculation).setPreparation(false);
+			outToClient.println("Suite a un problème indépendant de notre volonté, votre réservation n'a pas aboutie. \n Veuillez reessayer ultérieurement.");
+
+			e.printStackTrace();
+		}
+
+
+	}
+	public void vehiculeSortis() {
+		System.out.println("VEHICULES SORTIS \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+			if (v.getValue().isDispo_reservation() == false && v.getValue().isPreparation() == false && v.getValue().isDispo_en_recuperation() == false){
+				System.out.println(v.getValue().toStringServeur());
+			}
+
+		}
+
+	}
+	public void VehiculeADispo() {
+		System.out.println("VEHICULES A DISPOSITION \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+			if (v.getValue().isDispo_en_recuperation()== true ){
+				System.out.println(v.getValue().toStringServeur());
+			}
+
+		}
+
+	}
+	public void VehiculeEnPreparation() {
+		System.out.println("VEHICULES EN PREPARATION \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+			if (v.getValue().isPreparation() == true){
+				System.out.println(v.getValue().toStringServeur());
+			}
+
+		}
+
+	}
+	
+	
+
+}
