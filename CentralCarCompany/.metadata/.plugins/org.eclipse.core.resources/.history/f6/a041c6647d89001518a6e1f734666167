@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 
 
 public class threadConsole extends threadServeur {
+	//private threadServeur ts = new threadServeur();
 	Scanner sc = new Scanner(System.in);
 
 	public void run(){
@@ -58,16 +59,16 @@ public class threadConsole extends threadServeur {
 
 	public void afficher_aide(){
 		System.out.println("DPT/XXX-00 : Signaler le départ du véhicule XXX-00\n"
-				+ "RET/XXX-00 : Signaler le retour du véhicule XXX-00\n"
-				+ "MAD/XXX-00 : Signaler la mise à disposition du véhicule XXX-00\n"
-				+ "ETF : Afficher l'état de la flotte\n"
-				+ "VEP : Afficher les véhicules en préparation\n"
-				+ "VED : Afficher les véhicules mis à disposition\n"
-				+ "VES : Afficher les véhicules sortis\n"
-				+ "ACA : Afficher le nombre de client en attente\n"
-				);
+						 + "RET/XXX-00 : Signaler le retour du véhicule XXX-00\n"
+						 + "MAD/XXX-00 : Signaler la mise à disposition du véhicule XXX-00\n"
+						 + "ETF : Afficher l'état de la flotte\n"
+						 + "VEP : Afficher les véhicules en préparation\n"
+						 + "VED : Afficher les véhicules mis à disposition\n"
+						 + "VES : Afficher les véhicules sortis\n"
+						 + "ACA : Afficher le nombre de client en attente\n"
+						 );
 	}
-
+	
 	public void afficher_NbrClientEnAttente(){
 		System.out.println("Le nombre de clients en attente pour le véhicule est de : " + clientEnAttente);
 	}
@@ -80,7 +81,7 @@ public class threadConsole extends threadServeur {
 		}
 
 	}
-
+	
 
 	public void depart(String immatriculation){
 		Flotte_vehicules.get(immatriculation).setDispo_en_recuperation(false);
@@ -113,5 +114,4 @@ public class threadConsole extends threadServeur {
 			}
 
 		}
-	}
 }

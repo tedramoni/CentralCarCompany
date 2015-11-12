@@ -124,15 +124,7 @@ public class threadServeur extends NamedThread  {
 	}
 
 	private void quitter() {
-		try {
-			inFromClient.close();
-			outToClient.close();
-			connectionSocket.close();
-			this.finalize();
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// TODO Auto-generated method stub
 
 	}
 
@@ -177,8 +169,8 @@ public class threadServeur extends NamedThread  {
 			--clientEnAttente;
 			outToClient.println("Le véhicule est revenu. \n Nous allons pouvoir procéder à la réservation");
 		}
-
-
+		
+		
 		v.setDispo_reservation(false);
 		outToClient.println("Votre véhicule est reservé, la préparation va être lancée.");
 		this.setName(substring);
@@ -194,15 +186,15 @@ public class threadServeur extends NamedThread  {
 		}
 
 	}
-
-
+	
+	
 	public void miseADispo(String immatriculation){
 		Flotte_vehicules.get(immatriculation).setDispo_en_recuperation(true);
 		Flotte_vehicules.get(immatriculation).setPreparation(false);
 		outToClient.println("Le vehicule : " + immatriculation + " est à votre disposition dans notre garage \n Vous pouvez venir le récuperer");
 	}
 
-
+	
 
 	public synchronized void preparer(String immatriculation){
 		Flotte_vehicules.get(immatriculation).setPreparation(true);
@@ -238,8 +230,8 @@ public class threadServeur extends NamedThread  {
 		}
 	}
 
+	}
+	
+	
+
 }
-
-
-
-

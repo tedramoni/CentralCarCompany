@@ -48,16 +48,19 @@ public class threadServeur extends NamedThread  {
 	};
 
 	@SuppressWarnings("serial")
-	LinkedBlockingQueue<Employe> liste_employe = new LinkedBlockingQueue<Employe>();
-
+	LinkedBlockingQueue<Employe> liste_employe = new LinkedBlockingQueue<Employe>(){
+		{add(new Employe()); 
+		add(new Employe()); 
+		add(new Employe()); 
+		add(new Employe()); 
+		add(new Employe()); 
+		}
+	};
 	BufferedReader inFromClient;
 	PrintWriter outToClient;
 
-	public threadServeur(Socket s, int nbemployes){
+	public threadServeur(Socket s){
 		connectionSocket = s;
-		for (int i = 1; i <= nbemployes; ++i){
-			liste_employe.add(new Employe());
-		}
 	}
 
 	public threadServeur(){
@@ -124,15 +127,7 @@ public class threadServeur extends NamedThread  {
 	}
 
 	private void quitter() {
-		try {
-			inFromClient.close();
-			outToClient.close();
-			connectionSocket.close();
-			this.finalize();
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// TODO Auto-generated method stub
 
 	}
 
@@ -150,9 +145,10 @@ public class threadServeur extends NamedThread  {
 					outToClient.println(msg); 
 					while(v.isDispo_reservation() == false && attend==true){
 						try {
-							this.sleep(50000);
+							this.sleep(30000);
 							msg = msg.concat(".");
 							outToClient.println(msg); 
+							//outToClient.println("Veuillez patientier...");
 						} catch (InterruptedException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -177,8 +173,8 @@ public class threadServeur extends NamedThread  {
 			--clientEnAttente;
 			outToClient.println("Le véhicule est revenu. \n Nous allons pouvoir procéder à la réservation");
 		}
-
-
+		
+		
 		v.setDispo_reservation(false);
 		outToClient.println("Votre véhicule est reservé, la préparation va être lancée.");
 		this.setName(substring);
@@ -194,15 +190,55 @@ public class threadServeur extends NamedThread  {
 		}
 
 	}
+	
+	public void afficher_aide(){
+		System.out.println("DPT/XXX-00 : Signaler le départ du véhicule XXX-00\n"
+						 + "RET/XXX-00 : Signaler le retour du véhicule XXX-00\n"
+						 + "MAD/XXX-00 : Signaler la mise à disposition du véhicule XXX-00\n"
+						 + "ETF : Afficher l'état de la flotte\n"
+						 + "VEP : Afficher les véhicules en préparation\n"
+						 + "VED : Afficher les véhicules mis à disposition\n"
+						 + "VES : Afficher les véhicules sortis\n"
+						 + "ACA : Afficher le nombre de client en attente\n"
+						 );
+	}
+	
+	public void afficher_NbrClientEnAttente(){
+		System.out.println("Le nombre de clients en attente pour le véhicule est de : " + clientEnAttente);
+	}
 
+	public void etat_flotte() {
+		System.out.println("ETAT FLOTTE \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
 
+			System.out.println(v.getValue().toStringServeur());
+		}
+
+	}
 	public void miseADispo(String immatriculation){
 		Flotte_vehicules.get(immatriculation).setDispo_en_recuperation(true);
 		Flotte_vehicules.get(immatriculation).setPreparation(false);
 		outToClient.println("Le vehicule : " + immatriculation + " est à votre disposition dans notre garage \n Vous pouvez venir le récuperer");
 	}
 
+	public void retour(String immatriculation){
+		Flotte_vehicules.get(immatriculation).setDispo_reservation(true);
+		outToClient.println("Le retour du véhicule "+immatriculation + " à bien été enregistré. \n Nous espérons que l'expérience vous a plu");
+		outToClient.println("CONNEXION FERMÉE");
+		try {
+			inFromClient.close();
+			outToClient.close();
+			connectionSocket.close();
+			this.finalize();
+		} catch (Throwable e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
+	public void depart(String immatriculation){
+		Flotte_vehicules.get(immatriculation).setDispo_en_recuperation(false);
+	}
 
 	public synchronized void preparer(String immatriculation){
 		Flotte_vehicules.get(immatriculation).setPreparation(true);
@@ -223,23 +259,37 @@ public class threadServeur extends NamedThread  {
 
 
 	}
-	public void retour(String immatriculation){
-		Flotte_vehicules.get(immatriculation).setDispo_reservation(true);
-		outToClient.println("Le retour du véhicule "+immatriculation + " à bien été enregistré. \n Nous espérons que l'expérience vous a plu");
-		outToClient.println("CONNEXION FERMÉE");
-		try {
-			inFromClient.close();
-			outToClient.close();
-			connectionSocket.close();
-			this.finalize();
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public void vehiculeSortis() {
+		System.out.println("VEHICULES SORTIS \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+			if (v.getValue().isDispo_reservation() == false && v.getValue().isPreparation() == false && v.getValue().isDispo_en_recuperation() == false){
+				System.out.println(v.getValue().toStringServeur());
+			}
+
 		}
+
 	}
+	public void VehiculeADispo() {
+		System.out.println("VEHICULES A DISPOSITION \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+			if (v.getValue().isDispo_en_recuperation()== true ){
+				System.out.println(v.getValue().toStringServeur());
+			}
+
+		}
+
+	}
+	public void VehiculeEnPreparation() {
+		System.out.println("VEHICULES EN PREPARATION \n");
+		for(Entry<String, Vehicule> v : Flotte_vehicules.entrySet()){ 
+			if (v.getValue().isPreparation() == true){
+				System.out.println(v.getValue().toStringServeur());
+			}
+
+		}
+
+	}
+	
+	
 
 }
-
-
-
-

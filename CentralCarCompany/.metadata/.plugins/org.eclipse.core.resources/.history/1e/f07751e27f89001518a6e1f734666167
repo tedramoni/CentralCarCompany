@@ -115,12 +115,12 @@ public class threadServeur extends NamedThread  {
 		}
 
 
-		try {
+		/*try {
 			connectionSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
 	}
 
 	private void quitter() {

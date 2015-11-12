@@ -124,15 +124,7 @@ public class threadServeur extends NamedThread  {
 	}
 
 	private void quitter() {
-		try {
-			inFromClient.close();
-			outToClient.close();
-			connectionSocket.close();
-			this.finalize();
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		// TODO Auto-generated method stub
 
 	}
 

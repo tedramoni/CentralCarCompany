@@ -5,8 +5,6 @@ import java.net.*;
 
 public class Serveur2 {
 	
-	private final static int nbEmployes = 5;
-	
 	public static void main(String argv[]) throws Exception {
 		
 		// Creation de la socket d'accueil au port 8080
@@ -17,7 +15,7 @@ public class Serveur2 {
 
 			// Attente d'une demande de connexion sur la socket d'accueil
 			Socket connectionSocket = welcomeSocket.accept();
-			 new threadServeur(connectionSocket, nbEmployes).start();
+			 new threadServeur(connectionSocket).start();
 			
 		
 
