@@ -230,8 +230,8 @@ public class threadServeur extends NamedThread  {
 		try {
 			/*inFromClient.close();
 			outToClient.close();
-			connectionSocket.close();*/
-			this.finalize();
+			connectionSocket.close();
+			this.finalize();*/
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

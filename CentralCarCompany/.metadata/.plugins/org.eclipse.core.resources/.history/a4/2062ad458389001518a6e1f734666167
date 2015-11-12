@@ -228,9 +228,9 @@ public class threadServeur extends NamedThread  {
 		outToClient.println("Le retour du véhicule "+immatriculation + " à bien été enregistré. \n Nous espérons que l'expérience vous a plu");
 		outToClient.println("CONNEXION FERMÉE");
 		try {
-			/*inFromClient.close();
+			inFromClient.close();
 			outToClient.close();
-			connectionSocket.close();*/
+			connectionSocket.close();
 			this.finalize();
 		} catch (Throwable e) {
 			// TODO Auto-generated catch block
